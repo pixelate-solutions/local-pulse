@@ -1,7 +1,18 @@
+// next.config.ts
+
 import type { NextConfig } from "next";
+import { withPayload } from '@payloadcms/next/withPayload'
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "cdn.sanity.io",
+      },
+    ],
+  },
+  // ...other config settings
 };
 
-export default nextConfig;
+export default withPayload(nextConfig);
