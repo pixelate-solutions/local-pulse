@@ -23,7 +23,7 @@ export function DemoPopup({ isOpen, onClose }: DemoPopupProps) {
         <DialogHeader>
           <DialogTitle>Welcome to the Demo Site</DialogTitle>
           <DialogDescription>
-            This is just a demo site – only the landing page is live, but every other page would be built out with the same style and components you see here.
+            This is just a demo site – not every page is live, but in a live site, every page would be built out with the same style and components you see here.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>

@@ -1,19 +1,19 @@
-import { Globe, MessageSquareMore, Calendar } from 'lucide-react';
+import { Building, Newspaper, Calendar } from 'lucide-react';
 
 const data = [
   {
-    title: 'Global Reach',
-    text: 'See what’s happening in every corner of your city, filtered by neighborhood.',
-    icon: Globe,
+    title: 'Local Stories',
+    text: 'See what’s happening all around you, filtered by distance.',
+    icon: Building,
   },
   {
-    title: 'Real-Time Chat',
-    text: 'Instantly join threads on breaking news or local events as they unfold.',
-    icon: MessageSquareMore,
+    title: 'Real-Time News',
+    text: 'Instantly see breaking news or local events as they unfold.',
+    icon: Newspaper,
   },
   {
-    title: 'Event Calendar',
-    text: 'Never miss a meetup or gathering with our built-in community calendar.',
+    title: 'Daily Newsletter',
+    text: 'Never miss a local news story with our built-in community newsletter.',
     icon: Calendar,
   },
 ];

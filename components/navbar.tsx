@@ -4,9 +4,11 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
+import { DemoPopup } from './demo-popup';
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
+  const [popupOpen, setPopupOpen] = useState(false);
 
   return (
     <header className="fixed w-full z-50 backdrop-blur bg-white/30 shadow-sm">
@@ -59,13 +61,17 @@ const Navbar = () => {
             <Link
               href="/#about"
               className="block px-4 py-2 text-lg text-gray-700 hover:text-green-500"
-              onClick={() => setOpen(false)}
+              onClick={() => {
+                setOpen(false)
+                setPopupOpen(true)
+              }}
             >
               About
             </Link>
           </li>
         </ul>
       </nav>
+      <DemoPopup isOpen={popupOpen} onClose={() => setPopupOpen(false)} />
     </header>
   );
 };
