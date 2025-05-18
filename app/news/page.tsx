@@ -3,14 +3,26 @@
 import Navbar from '@/components/navbar'
 import NewsClient from './NewsClient'
 
-export default function NewsPage({
+export default function Page({
+  params,
   searchParams,
 }: {
-  searchParams: { zip?: string; option?: string }
+  params: {}                                // no dynamic segments here
+  searchParams: {                           // Next’s built-in type for searchParams
+    [key: string]: string | string[] | undefined
+  }
 }) {
-  // pull them out of the server‐side props
-  const zip    = typeof searchParams.zip    === 'string' ? searchParams.zip    : ''
-  const option = typeof searchParams.option === 'string' ? searchParams.option : ''
+  // safely coerce zip & option into single strings:
+  const rawZip    = searchParams.zip
+  const rawOption = searchParams.option
+
+  const zip = Array.isArray(rawZip)
+    ? rawZip[0]
+    : rawZip ?? ''
+
+  const option = Array.isArray(rawOption)
+    ? rawOption[0]
+    : rawOption ?? ''
 
   return (
     <>
