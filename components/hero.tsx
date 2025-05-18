@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import Image from 'next/image';
 
 const options = ['Very close', 'Nearby', 'Surroundings']
 
@@ -110,7 +111,7 @@ export default function Hero() {
         </div>
 
         <div className="flex-1 mt-10 lg:mt-0">
-          <img
+          <Image
             src="/neighborhood.jpg"
             alt="Community illustration"
             className="rounded-lg shadow-lg"
