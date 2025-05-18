@@ -14,7 +14,7 @@ const Navbar = () => {
     <header className="fixed w-full z-50 backdrop-blur bg-white/30 shadow-sm">
       <nav className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
         <Link href="/" className="flex items-center space-x-2">
-          <Image src="/logo.png" alt="LocalPulse Logo" className="h-8 w-auto" />
+          <img src="/logo.png" alt="LocalPulse Logo" className="h-8 w-8" />
           <span className="text-3xl font-extrabold text-gray-900">
             LocalPulse
           </span>

@@ -111,7 +111,7 @@ export default function Hero() {
         </div>
 
         <div className="flex-1 mt-10 lg:mt-0">
-          <Image
+          <img
             src="/neighborhood.jpg"
             alt="Community illustration"
             className="rounded-lg shadow-lg"

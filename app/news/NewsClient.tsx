@@ -115,12 +115,12 @@ export default function NewsClient({
               Daily Search Limit Reached
             </h2>
             <p className="text-red-700 mb-6">
-              You’ve used up today’s free searches. 🔒
+              Come back later for more
             </p>
             <div className="text-green-600 font-mono text-lg">
               Next reset in: {String(hours).padStart(2,'0')}:
                             {String(minutes).padStart(2,'0')}:
-                            {String(seconds).padStart(2,'0')} (HH:MM:SS UTC)
+                            {String(seconds).padStart(2,'0')}
             </div>
           </CardContent>
         </Card>
@@ -158,7 +158,7 @@ export default function NewsClient({
               rel="noopener noreferrer"
               className={`${span} block transform transition hover:scale-[103%] cursor-pointer`}
             >
-              <Card className="h-full bg-white shadow-green-500/40 shadow-lg">
+              <Card className="h-full bg-white hover:shadow-lg border-green-500/50">
                 <CardContent className="h-full flex flex-col">
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">
                     {a.title}
