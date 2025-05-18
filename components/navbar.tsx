@@ -4,7 +4,6 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Menu, X } from 'lucide-react';
 import { DemoPopup } from './demo-popup';
-import Image from 'next/image';
 
 const Navbar = () => {
   const [open, setOpen] = useState(false);
