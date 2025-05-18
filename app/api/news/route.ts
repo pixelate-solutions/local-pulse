@@ -84,6 +84,18 @@ async function fetchGNewsFor(
   // coerce & validate each field
   return (json.articles as unknown[]).map((item) => {
     const a = item as Record<string, unknown>
+
+    // safely extract source.name without using 'any'
+    let sourceName = ''
+    if (
+      typeof a.source === 'object' &&
+      a.source !== null &&
+      'name' in a.source &&
+      typeof (a.source as Record<string, unknown>).name === 'string'
+    ) {
+      sourceName = (a.source as Record<string, string>).name
+    }
+
     return {
       title:
         typeof a.title === 'string'
@@ -93,13 +105,7 @@ async function fetchGNewsFor(
         typeof a.url === 'string'
           ? a.url
           : '',
-      source: {
-        name:
-          typeof (a.source as any)?.name ===
-          'string'
-            ? (a.source as any).name
-            : '',
-      },
+      source: { name: sourceName },
       publishedAt:
         typeof a.publishedAt === 'string'
           ? a.publishedAt
@@ -125,7 +131,7 @@ async function fetchWithKeys(
     } catch (error: unknown) {
       const err = error as GNewsError
       if (err.status === 429 || err.status === 403) {
-        // rate‐limit, try next key
+        // rate-limit, try next key
         continue
       }
       throw err
@@ -145,7 +151,7 @@ export async function GET(req: NextRequest) {
   const option = (searchParams.get('option') ?? '').trim()
 
   // 1) validate inputs
-  if (!/^\d{5}$/.test(zip)) {
+  if (!/^[0-9]{5}$/.test(zip)) {
     return NextResponse.json(
       { error: 'Invalid ZIP' },
       { status: 400 }
@@ -200,35 +206,19 @@ export async function GET(req: NextRequest) {
   // 4) collect & sort nearby zips by distance
   const rawZips = zipcodes
     .radius(zip, radiusMiles)
-    .filter(
-      (z): z is string => typeof z === 'string'
-    )
+    .filter((z): z is string => typeof z === 'string')
 
-  const withDist: {
-    loc: ZipCode
-    dist: number
-  }[] = []
+  const withDist: { loc: ZipCode; dist: number }[] = []
   for (const z of rawZips) {
     const loc = zipcodes.lookup(z)
     if (!loc) continue
-    withDist.push({
-      loc,
-      dist: haversine(
-        cLat,
-        cLon,
-        loc.latitude,
-        loc.longitude
-      ),
-    })
+    withDist.push({ loc, dist: haversine(cLat, cLon, loc.latitude, loc.longitude) })
   }
   withDist.sort((a, b) => a.dist - b.dist)
 
   // 5) pick up to 10 unique cities and gather states
   const seenCities = new Set<string>()
-  const citiesWithDist: {
-    label: string
-    dist: number
-  }[] = []
+  const citiesWithDist: { label: string; dist: number }[] = []
   const states = new Set<string>()
 
   for (const { loc, dist } of withDist) {
@@ -254,8 +244,7 @@ export async function GET(req: NextRequest) {
     process.env.GNEWS_API_KEY3,
     process.env.GNEWS_API_KEY4,
     process.env.GNEWS_API_KEY5,
-  ]
-    .filter((k): k is string => Boolean(k))
+  ].filter((k): k is string => Boolean(k))
   if (keys.length === 0) {
     return NextResponse.json(
       { error: 'No API keys configured' },
@@ -264,68 +253,37 @@ export async function GET(req: NextRequest) {
   }
 
   // 7) sequentially fetch per-city, spacing 1s apart
-  const rawWithDist: {
-    article: GNewsArticle
-    dist: number
-    time: number
-  }[] = []
+  const rawWithDist: { article: GNewsArticle; dist: number; time: number }[] = []
   for (let i = 0; i < numCities; i++) {
     const { label, dist } = citiesWithDist[i]
     const cityName = label.split(',')[0]
     try {
       const arts = await fetchWithKeys(cityName, keys)
       for (const a of arts) {
-        rawWithDist.push({
-          article: a,
-          dist,
-          time: new Date(
-            a.publishedAt
-          ).getTime(),
-        })
+        rawWithDist.push({ article: a, dist, time: new Date(a.publishedAt).getTime() })
       }
     } catch (error: unknown) {
       const e = error as GNewsError
       if (e.isLimit) {
         return NextResponse.json(
-          {
-            error:
-              'Daily API limit reached. Please try again after midnight.',
-          },
+          { error: 'Daily API limit reached. Please try again after midnight.' },
           { status: 429 }
         )
       }
-      console.error(
-        `GNews fetch for ${label} failed:`,
-        e
-      )
+      console.error(`GNews fetch for ${label} failed:`, e)
     }
     if (i < numCities - 1) await sleep(1000)
   }
 
   // 8) filter to truly local domains across all states
-  const allowedDomains = Array.from(states).flatMap(
-    (s) => localDomainsByState[s] || []
-  )
-  const deduped: {
-    article: GNewsArticle
-    dist: number
-    time: number
-  }[] = []
+  const allowedDomains = Array.from(states).flatMap(s => localDomainsByState[s] || [])
+  const deduped: { article: GNewsArticle; dist: number; time: number }[] = []
   const seenUrls = new Set<string>()
 
   for (const x of rawWithDist) {
     try {
-      const host = new URL(
-        x.article.url
-      )
-        .hostname.replace(/^www\./, '')
-      if (
-        !allowedDomains.some(
-          (d) =>
-            host === d || host.endsWith(`.${d}`)
-        )
-      )
-        continue
+      const host = new URL(x.article.url).hostname.replace(/^www\./, '')
+      if (!allowedDomains.some(d => host === d || host.endsWith(`.${d}`))) continue
     } catch {
       continue
     }
@@ -340,26 +298,14 @@ export async function GET(req: NextRequest) {
   const binSize = radiusMiles / bins
   const selected: GNewsArticle[] = []
 
-  for (
-    let i = 0;
-    i < bins && selected.length < 20;
-    i++
-  ) {
+  for (let i = 0; i < bins && selected.length < 20; i++) {
     const low = i * binSize
     const high = (i + 1) * binSize
     const candidates = deduped
-      .filter(
-        (x) => x.dist >= low && x.dist < high
-      )
+      .filter(x => x.dist >= low && x.dist < high)
       .sort((a, b) => b.time - a.time)
 
-    for (
-      let j = 0;
-      j < perBin &&
-      selected.length < 20 &&
-      j < candidates.length;
-      j++
-    ) {
+    for (let j = 0; j < perBin && selected.length < 20 && j < candidates.length; j++) {
       selected.push(candidates[j].article)
     }
   }
@@ -367,18 +313,9 @@ export async function GET(req: NextRequest) {
   // Fill remaining by recency if under 20
   if (selected.length < 20) {
     const remaining = deduped
-      .map((x) => x.article)
-      .filter(
-        (a) =>
-          !selected.some(
-            (s) => s.url === a.url
-          )
-      )
-      .sort(
-        (a, b) =>
-          new Date(b.publishedAt).getTime() -
-          new Date(a.publishedAt).getTime()
-      )
+      .map(x => x.article)
+      .filter(a => !selected.some(s => s.url === a.url))
+      .sort((a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime())
 
     for (const a of remaining) {
       if (selected.length >= 20) break
@@ -387,7 +324,7 @@ export async function GET(req: NextRequest) {
   }
 
   // 10) shape response
-  const articles = selected.map((a) => ({
+  const articles = selected.map(a => ({
     title: a.title,
     url: a.url,
     source: a.source?.name ?? '',
@@ -399,7 +336,7 @@ export async function GET(req: NextRequest) {
     zip,
     center: { city: centerCity, state: centerState },
     option,
-    queryCities: citiesWithDist.map((c) => c.label),
+    queryCities: citiesWithDist.map(c => c.label),
     articles,
   })
 }
